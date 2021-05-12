@@ -3,11 +3,6 @@ import os
 import random
 import re
 
-# Brickbot version 1.2
-# Changelog:
-## Changed brickbot to no longer always-react in channel [REDACTED] (though it does have a higher chance)
-## Added the :brick_beer: for mentions of 'pub' in channel [REDACTED]
-
 # Brickbot invite link
 # https://discord.com/api/oauth2/authorize?client_id=819688841527033927&permissions=265280&scope=bot
 
@@ -133,6 +128,7 @@ async def on_message(message):
     #Brickbot yes command
     elif "brickbot yes" in message.content.lower():
         await message.add_reaction(client.OwO)
+        await message.channel.send(client.OwO)
         print("Brickbot yes in channel " + str(message.channel))
         
     #Regex syntax matching
