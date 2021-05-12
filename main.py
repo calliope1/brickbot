@@ -146,12 +146,13 @@ async def on_message(message):
         print("Brick located in channel " + str(message.channel))
         
     #React to pub messages from the [REDACTED] channel with :brick_beer:
-    elif message.channel.id == [CHANNELID] and "pub" in message.content.lower():
-        await message.add_reaction(client.brick_beer)
-        print("Pub reacted")
-    elif not random.randint(0,19):
-        await message.add_reaction(client.brick)
-        print("Brick reacted")
+    elif message.channel.id == [CHANNELID]:
+        if "pub" in message.content.lower():
+            await message.add_reaction(client.brick_beer)
+            print("Pub reacted")
+        elif not random.randint(0,19):
+            await message.add_reaction(client.brick)
+            print("Brick reacted")
     
     #React to every hundredth (randomly) message with :brick:
     elif not random.randint(0,99):
