@@ -2,6 +2,7 @@ import discord
 import os
 import random
 import re
+import brickbot_arg
 
 from dotenv import load_dotenv
 
