@@ -47,7 +47,7 @@ async def on_message(message):
         return
     
     #The commands channel in brickbot's server
-    elif message.channel.id == [GUILDID]:
+    elif message.channel.id == [CHANNELID]:
     
         #Return list of channels that brickbot is in
         if message.content.lower() == "!channels":
