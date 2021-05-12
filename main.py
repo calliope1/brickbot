@@ -113,6 +113,11 @@ async def on_message(message):
     elif message.content.lower() == "!brickbot":
         await message.channel.send("Brickbot is a bot that reacts to any messages containing the word brick with a " + client.brick + "!")
         print("!brickbot in channel " + str(message.channel))
+        
+    #Brickbot repository command
+    elif message.content.lower() == "!brickrepo":
+        await message.channel.send("You can find the repository of my code at https://github.com/calliope1/brickbot")
+        print("Brickrepo command activated in channel " + str(message.channel))
     
     #Lesbian reaction
     elif "lesbian" in message.content.lower():
