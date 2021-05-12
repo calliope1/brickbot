@@ -3,14 +3,24 @@ import os
 import random
 import re
 
+from dotenv import load_dotenv
+
 # Brickbot invite link
 # https://discord.com/api/oauth2/authorize?client_id=819688841527033927&permissions=265280&scope=bot
 
+# dotenv variable grabbing
+load_dotenv()
+token = os.getenv("discord_token")
+excluded_channel = os.getenv("excluded_channel")
+commands_channel = os.getenv("commands_channel")
+promoted_channel = os.getenv("promoted_channel")
+
+
 #Discord client connection
-client = discord.Client(activity=discord.Game(name='Brick'))
+client = discord.Client(activity=discord.Game(name="Brick"))
 
 #Brick counting
-client.brickcount = 0 #This probably needs to get removed - no one uses it and it gets reset whenever I reset Brickbot (and I don't want to bother messing around with local files or databases or whatever)
+client.brickcount = 0
 
 #Emojis
 client.brick = "<:brick:834492870353485844>"
@@ -42,12 +52,12 @@ async def on_message(message):
     if message.author == client.user:
         return
     
-    #Don't interact with [REDACTED]
-    if message.channel.id == [CHANNELID]:
+    #Don't interact with excluded channels
+    if message.channel.id == excluded_channel:
         return
     
     #The commands channel in brickbot's server
-    elif message.channel.id == [CHANNELID]:
+    elif message.channel.id == commands_channel:
     
         #Return list of channels that brickbot is in
         if message.content.lower() == "!channels":
@@ -108,7 +118,7 @@ async def on_message(message):
     elif message.content.lower() == "!brickbot":
         await message.channel.send("Brickbot is a bot that reacts to any messages containing the word brick with a " + client.brick + "!")
         print("!brickbot in channel " + str(message.channel))
-        
+    
     #Brickbot repository command
     elif message.content.lower() == "!brickrepo":
         await message.channel.send("You can find the repository of my code at https://github.com/calliope1/brickbot")
@@ -119,7 +129,7 @@ async def on_message(message):
         await message.add_reaction(client.brick_lesbian)
         print("Lesbian reacted in " + str(message.channel))
     
-    #Pickle brick reaction
+    #Secret pickle brick command
     elif message.content.lower() == "pickle brick":
         await message.add_reaction(client.picklebrick)
         await message.channel.send("I'm Pickle Brick!! " + client.picklebrick)
@@ -130,7 +140,7 @@ async def on_message(message):
         await message.add_reaction(client.OwO)
         await message.channel.send(client.OwO)
         print("Brickbot yes in channel " + str(message.channel))
-        
+    
     #Regex syntax matching
     elif bool(client.regex.search("".join(filter(isregular,message.content.lower())))) or bool(client.regex.search("".join(filter(isregular,message.content.lower()[::-1])))):
         await message.channel.send(client.brick)
@@ -145,14 +155,14 @@ async def on_message(message):
         client.brickcount += 1
         print("Brick located in channel " + str(message.channel))
         
-    #React to pub messages from the [REDACTED] channel with :brick_beer:
-    elif message.channel.id == [CHANNELID]:
+    #React to pub messages from promoted channels with :brick_beer:
+    elif message.channel.id == promoted_channel:
         if "pub" in message.content.lower():
             await message.add_reaction(client.brick_beer)
-            print("Pub reacted")
+            print("Pub reacted to an announcement")
         elif not random.randint(0,19):
             await message.add_reaction(client.brick)
-            print("Brick reacted")
+            print("Brick reacted to an announcement")
     
     #React to every hundredth (randomly) message with :brick:
     elif not random.randint(0,99):
@@ -160,4 +170,4 @@ async def on_message(message):
         print("Brick reacted in channel " + str(message.channel))
 
 #Logs in to the bot
-client.run([TOKEN])
+client.run(token)
