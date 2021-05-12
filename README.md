@@ -9,4 +9,4 @@ Though I can't guarantee that it'll be up all the time (in fact she is often off
 
 ## Acknowledgements
 
-Thank you to @RazrShade for the work on the regular expressions used to test for if a message has brick. Truly this bot is now on top of the world.
+Thank you to @RazrShade for the initial idea and early work on the regular expressions used to test for if a message has brick. The current regex formula is my own creation.
