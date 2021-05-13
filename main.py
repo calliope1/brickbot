@@ -11,10 +11,10 @@ from dotenv import load_dotenv
 
 # dotenv variable grabbing
 load_dotenv()
-token = os.getenv("discord_token")
-excluded_channel = os.getenv("excluded_channel")
-commands_channel = os.getenv("commands_channel")
-promoted_channel = os.getenv("promoted_channel")
+token = str(os.getenv("discord_token"))
+excluded_channel = int(os.getenv("excluded_channel"))
+commands_channel = int(os.getenv("commands_channel"))
+promoted_channel = int(os.getenv("promoted_channel"))
 
 
 #Discord client connection
@@ -28,7 +28,7 @@ client.brick = "<:brick:834492870353485844>"
 client.picklebrick = "<:PickleBrick:834492890272628836>"
 client.brick_lesbian = "<:brick_lesbian:836037661340205076>"
 client.OwO = "<:OwO:834511912121270303>"
-client.brick_beer = "<brick_beer:842065415840858122>"
+client.brick_beer = "<:brick_beer:842065415840858122>"
 
 #Regular expression looking for bricks
 client.regex = re.compile('[b8]+r+[i1!]*c+[ck]')
@@ -98,6 +98,13 @@ async def on_message(message):
             await msg.add_reaction(client.brick)
             await message.channel.send("Reacted to message '" + msg.content + "' with " + client.brick)
         
+        #Brick_beer reacts a maessage (syntax: !brickbeerreact MESSAGEID CHANNELID)
+        elif message.content.lower()[0:15] == "!brickbeerreact":
+            channel = client.get_channel(int(message.content[35:54]))
+            msg = await channel.fetch_message(int(message.content[16:34]))
+            await msg.add_reaction(client.brick_beer)
+            await message.channel.send("Reacted to message '" + msg.content + "' with " + client.brick_beer)
+        
             
         
         #No known command
@@ -159,6 +166,7 @@ async def on_message(message):
     #React to pub messages from promoted channels with :brick_beer:
     elif message.channel.id == promoted_channel:
         if "pub" in message.content.lower():
+            await message.channel.send(client.brick_beer)
             await message.add_reaction(client.brick_beer)
             print("Pub reacted to an announcement")
         elif not random.randint(0,19):
