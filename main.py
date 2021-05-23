@@ -27,8 +27,10 @@ client.brickcount = 0
 client.brick = "<:brick:834492870353485844>"
 client.picklebrick = "<:PickleBrick:834492890272628836>"
 client.brick_lesbian = "<:brick_lesbian:836037661340205076>"
-client.OwO = "<:OwO:834511912121270303>"
+#client.OwO = "<:OwO:834511912121270303>"
 client.brick_beer = "<:brick_beer:842065415840858122>"
+client.thank_you = "<:thank_you:846033897296756756>"
+client.extreme_sadness = "<:extreme_sadness:846033897392439306>"
 
 #Regular expression looking for bricks
 client.regex = re.compile('[b8]+r+[i1!]*c+[ck]')
@@ -110,6 +112,14 @@ async def on_message(message):
         #No known command
         else:
             await message.channel.send("Command failed")
+    
+    #!bb-help command
+    elif message.content.lower() == "!bb-help":
+        await message.channel.send("Current brickbot commands are:\n!bb-help\tThat's this command!\n!areyoutherebb\tI'll respond with 'Yes' (if I'm online)\n!brickcount\tCounts the number of bricks located since the last count (sorta)\n!brickbot\tApproximate explanation of who I am\n!brickrepo\tI'll link my GitHub repository!")
+    
+    #Is brickbot online command
+    elif message.content.lower() == "!areyoutherebb":
+        await message.channel.send("Yes! " + client.brick)
         
     #Brickcount command
     elif message.content.lower() == "!brickcount":
@@ -124,7 +134,7 @@ async def on_message(message):
         
     #Who is brickbot command
     elif message.content.lower() == "!brickbot":
-        await message.channel.send("Brickbot is a bot that reacts to any messages containing the word brick with a " + client.brick + "!")
+        await message.channel.send("Brickbot is a bot that reacts to any messages containing the word brick with a " + client.brick + "! For a full list of commands, type '!bb-help'.")
         print("!brickbot in channel " + str(message.channel))
     
     #Brickbot repository command
@@ -145,9 +155,15 @@ async def on_message(message):
     
     #Brickbot yes command
     elif "brickbot yes" in message.content.lower():
-        await message.add_reaction(client.OwO)
-        await message.channel.send(client.OwO)
+        await message.add_reaction(client.thank_you)
+        await message.channel.send(client.thank_you)
         print("Brickbot yes in channel " + str(message.channel))
+    
+    #Brickbot no command
+    elif "brickbot no" in message.content.lower():
+        await message.add_reaction(client.extreme_sadness)
+        await message.channel.send(client.extreme_sadness)
+        print("Brickbot no in channel " + str(message.channel))
     
     #Regex syntax matching
     elif bool(client.regex.search("".join(filter(isregular,message.content.lower())))) or bool(client.regex.search("".join(filter(isregular,message.content.lower()[::-1])))):
