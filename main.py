@@ -115,7 +115,7 @@ async def on_message(message):
     
     #!bb-help command
     elif message.content.lower() == "!bb-help":
-        await message.channel.send("Current brickbot commands are:\n!bb-help\tThat's this command!\n!areyoutherebb\tI'll respond with 'Yes' (if I'm online)\n!brickcount\tCounts the number of bricks located since the last count (sorta)\n!brickbot\tApproximate explanation of who I am\n!brickrepo\tI'll link my GitHub repository!")
+        await message.channel.send("Current brickbot commands are:\n`!bb-help`\tThat's this command!\n`!areyoutherebb`\tI'll respond with 'Yes' (if I'm online)\n`!brickcount`\tCounts the number of bricks located since the last count (sorta)\n`!brickbot`\tApproximate explanation of who I am\n`!brickrepo`\tI'll link my GitHub repository!")
     
     #Is brickbot online command
     elif message.content.lower() == "!areyoutherebb":
