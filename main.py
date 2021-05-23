@@ -107,6 +107,10 @@ async def on_message(message):
             await msg.add_reaction(client.brick_beer)
             await message.channel.send("Reacted to message '" + msg.content + "' with " + client.brick_beer)
         
+        #Experimental DM feature
+        elif message.content.lower() == "!dmme":
+            await message.author.send("Hi!")
+        
             
         
         #No known command
@@ -115,8 +119,14 @@ async def on_message(message):
     
     #!bb-help command
     elif message.content.lower() == "!bb-help":
-        await message.channel.send("Current brickbot commands are:\n•`!bb-help`\tThat's this command!\n•`!areyoutherebb`\tI'll respond with 'Yes' (if I'm online)\n•`!brickcount`\tCounts the number of bricks located since the last count (sorta)\n•`!brickbot`\tApproximate explanation of who I am\n•`!brickrepo`\tI'll link my GitHub repository!")
+        await message.author.send("Current brickbot commands are:\n•`!bb-help`\tThat's this command! The command list is sent as a DM.\n•`!bb-help-here`\tI'll send this list to the channel, rather than as a DM\n•`!areyoutherebb`\tI'll respond with 'Yes' (if I'm online)\n•`!brickcount`\tCounts the number of bricks located since the last count (sorta)\n•`!brickbot`\tApproximate explanation of who I am\n•`!brickrepo`\tI'll link my GitHub repository!")
+        await message.channel.send("Command list sent as a direct message!")
         print("!bb-help command in channel " + str(message.channel))
+    
+    #!bb-help-here command
+    elif message.content.lower() == "!bb-help-here":
+        await message.channel.send("Current brickbot commands are:\n•`!bb-help`\tSends my command list as a DM.\n•`!bb-help-here`\tThat's this command! I send my command list to the channel\n•`!areyoutherebb`\tI'll respond with 'Yes' (if I'm online)\n•`!brickcount`\tCounts the number of bricks located since the last count (sorta)\n•`!brickbot`\tApproximate explanation of who I am\n•`!brickrepo`\tI'll link my GitHub repository!")
+        print("!bb-help-here command in channel " + str(message.channel))
     
     #Is brickbot online command
     elif message.content.lower() == "!areyoutherebb":
