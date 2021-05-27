@@ -31,6 +31,7 @@ client.brick_lesbian = "<:brick_lesbian:836037661340205076>"
 client.brick_beer = "<:brick_beer:842065415840858122>"
 client.thank_you = "<:thank_you:846033897296756756>"
 client.extreme_sadness = "<:extreme_sadness:846033897392439306>"
+client.brick_sign = "<:brick_sign:847255509265809408>"
 
 #Regular expression looking for bricks
 client.regex = re.compile('[b8]+r+[i1!]*c+[ck]')
@@ -111,8 +112,6 @@ async def on_message(message):
         elif message.content.lower() == "!dmme":
             await message.author.send("Hi!")
         
-            
-        
         #No known command
         else:
             await message.channel.send("Command failed")
@@ -175,6 +174,11 @@ async def on_message(message):
         await message.add_reaction(client.extreme_sadness)
         await message.channel.send(client.extreme_sadness)
         print("Brickbot no in channel " + str(message.channel))
+    
+    #No fun command
+    elif "no fun" in message.content.lower():
+        await message.add_reaction(client.brick_sign)
+        print("No fun reacted in channel " + str(message.channel))
     
     #Regex syntax matching
     elif bool(client.regex.search("".join(filter(isregular,message.content.lower())))) or bool(client.regex.search("".join(filter(isregular,message.content.lower()[::-1])))):
