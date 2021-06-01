@@ -71,7 +71,7 @@ async def on_message(message):
         return
     
     #The commands channel in brickbot's server
-    elif message.channel.id == commands_channel:
+    if message.channel.id == commands_channel:
     
         #Return list of channels that brickbot is in
         if message.content.lower() == "!channels":
@@ -161,34 +161,13 @@ async def on_message(message):
     elif message.content.lower() == "!brickrepo":
         await message.channel.send("You can find the repository of my code at https://github.com/calliope1/brickbot")
         print("Brickrepo command activated in channel " + str(message.channel))
-    
-    #Flag reactions
-    
-    elif "asexual" in message.content.lower():
-        await message.add_reaction(client.brick_ace)
-        print("Asexual reacted in " + str(message.channel))
-    elif "bisexual" in message.content.lower():
-        await message.add_reaction(client.brick_bi)
-        print("Bisexual reacted in " + str(message.channel))
-    elif "lesbian" in message.content.lower():
-        await message.add_reaction(client.brick_lesbian)
-        print("Lesbian reacted in " + str(message.channel))
-    elif "gay" in message.content.lower() or "lgbt" in message.content.lower():
-        await message.add_reaction(client.brick_lgbt)
-        print("LGBT reacted in " + str(message.channel))
-    elif "non-binary" in message.content.lower() or "nonbinary" in message.content.lower() or "non binary" in message.content.lower():
-        await message.add_reaction(client.brick_nb)
-        print("Nonbinary reacted in " + str(message.channel))
-    elif "trans" in message.content.lower():
-        await message.add_reaction(client.brick_trans)
-        print("Trans reacted in " + str(message.channel))
-    
+        
     #Pickle brick
     elif "pickle brick" in message.content.lower():
         await message.add_reaction(client.picklebrick)
         await message.channel.send("I'm Pickle Brick!! " + client.picklebrick)
         print("Pickle brick in channel " + str(message.channel))
-    
+        
     #Brickbot yes command
     elif "brickbot yes" in message.content.lower():
         await message.add_reaction(client.thank_you)
@@ -206,6 +185,45 @@ async def on_message(message):
         await message.add_reaction(client.brick_sign)
         print("No fun reacted in channel " + str(message.channel))
     
+    #Flag reactions
+    if "asexual" in message.content.lower():
+        await message.add_reaction(client.brick_ace)
+        print("Asexual reacted in " + str(message.channel))
+    if "bisexual" in message.content.lower():
+        await message.add_reaction(client.brick_bi)
+        print("Bisexual reacted in " + str(message.channel))
+    if "lesbian" in message.content.lower():
+        await message.add_reaction(client.brick_lesbian)
+        print("Lesbian reacted in " + str(message.channel))
+    if "gay" in message.content.lower() or "lgbt" in message.content.lower():
+        await message.add_reaction(client.brick_lgbt)
+        print("LGBT reacted in " + str(message.channel))
+    if "non-binary" in message.content.lower() or "nonbinary" in message.content.lower() or "non binary" in message.content.lower():
+        await message.add_reaction(client.brick_nb)
+        print("Nonbinary reacted in " + str(message.channel))
+    if "trans" in message.content.lower():
+        await message.add_reaction(client.brick_trans)
+        print("Trans reacted in " + str(message.channel))
+
+    #React to pub messages from promoted channels with :brick_beer:
+    if message.channel.id == promoted_channel:
+        if "pub" in message.content.lower():
+            await message.channel.send(client.brick_beer)
+            await message.add_reaction(client.brick_beer)
+            print("Pub reacted to an announcement")
+        elif bool(client.regex.search("".join(filter(isregular,message.content.lower())))) or bool(client.regex.search("".join(filter(isregular,message.content.lower()[::-1])))) or "🧱" in message.content.lower():
+            if not random.randint(0,99):
+                emoji = client.all_flags[random.randint(0,len(client.all_flags))]
+                await message.channel.send(emoji)
+                await message.add_reaction(emoji)
+            else:
+                await message.channel.send(client.brick)
+                await message.add_reaction(client.brick)
+            print("Brick found in channel " + str(message.channel))
+        elif not random.randint(0,19):
+            await message.add_reaction(client.brick)
+            print("Brick reacted to an announcement")
+
     #Regex syntax matching and brick finding
     elif bool(client.regex.search("".join(filter(isregular,message.content.lower())))) or bool(client.regex.search("".join(filter(isregular,message.content.lower()[::-1])))) or "🧱" in message.content.lower():
         if not random.randint(0,99):
@@ -216,16 +234,6 @@ async def on_message(message):
             await message.channel.send(client.brick)
             await message.add_reaction(client.brick)
         print("Brick found in channel " + str(message.channel))
-        
-    #React to pub messages from promoted channels with :brick_beer:
-    elif message.channel.id == promoted_channel:
-        if "pub" in message.content.lower():
-            await message.channel.send(client.brick_beer)
-            await message.add_reaction(client.brick_beer)
-            print("Pub reacted to an announcement")
-        elif not random.randint(0,19):
-            await message.add_reaction(client.brick)
-            print("Brick reacted to an announcement")
     
     #React to every hundredth (randomly) message with :brick:
     elif not random.randint(0,99):
