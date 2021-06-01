@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 
 # dotenv variable grabbing
 load_dotenv()
-token = str(os.getenv("discord_token"))
+token = os.getenv("discord_token")
 excluded_channel = int(os.getenv("excluded_channel"))
 commands_channel = int(os.getenv("commands_channel"))
 promoted_channel = int(os.getenv("promoted_channel"))
@@ -24,14 +24,24 @@ client = discord.Client(activity=discord.Game(name="Brick"))
 client.brickcount = 0
 
 #Emojis
-client.brick = "<:brick:834492870353485844>"
-client.picklebrick = "<:PickleBrick:834492890272628836>"
-client.brick_lesbian = "<:brick_lesbian:836037661340205076>"
-#client.OwO = "<:OwO:834511912121270303>"
-client.brick_beer = "<:brick_beer:842065415840858122>"
-client.thank_you = "<:thank_you:846033897296756756>"
-client.extreme_sadness = "<:extreme_sadness:846033897392439306>"
-client.brick_sign = "<:brick_sign:847255509265809408>"
+#Brick-type (non-flag)
+client.brick = str(os.getenv("brick"))
+client.pickle_brick = str(os.getenv("pickle_brick"))
+client.brick_beer = str(os.getenv("brick_beer"))
+client.brick_sign = str(os.getenv("brick_sign"))
+#Flags
+client.brick_lesbian = str(os.getenv("brick_lesbian"))
+client.brick_ace = str(os.getenv("brick_ace"))
+client.brick_bi = str(os.getenv("brick_bi"))
+client.brick_lgbt = str(os.getenv("brick_lgbt"))
+client.brick_nb = str(os.getenv("brick_nb"))
+client.brick_trans = str(os.getenv("brick_trans"))
+#Others
+client.thank_you = str(os.getenv("thank_you"))
+client.extreme_sadness = str(os.getenv("extreme_sadness"))
+
+#Flag list (for random calling)
+client.all_flags = [client.brick_ace,client.brick_bi,client.brick_lesbian,client.brick_lgbt,client.brick_nb,client.brick_trans]
 
 #Regular expression looking for bricks
 client.regex = re.compile('[b8]+r+[i1!]*c+[ck]')
@@ -118,29 +128,29 @@ async def on_message(message):
     
     #!bb-help command
     elif message.content.lower() == "!bb-help":
-        await message.author.send("Current brickbot commands are:\n•`!bb-help`\tThat's this command! The command list is sent as a DM.\n•`!bb-help-here`\tI'll send this list to the channel, rather than as a DM\n•`!areyoutherebb`\tI'll respond with 'Yes' (if I'm online)\n•`!brickcount`\tCounts the number of bricks located since the last count (sorta)\n•`!brickbot`\tApproximate explanation of who I am\n•`!brickrepo`\tI'll link my GitHub repository!")
+        await message.author.send("Current brickbot commands are:\n•`!bb-help`\tThat's this command! The command list is sent as a DM.\n•`!bb-help-here`\tI'll send this list to the channel, rather than as a DM\n•`!areyoutherebb`\tI'll respond with 'Yes' (if I'm online)\n•`!brickbot`\tApproximate explanation of who I am\n•`!brickrepo`\tI'll link my GitHub repository!")
         await message.channel.send("Command list sent as a direct message!")
         print("!bb-help command in channel " + str(message.channel))
     
     #!bb-help-here command
     elif message.content.lower() == "!bb-help-here":
-        await message.channel.send("Current brickbot commands are:\n•`!bb-help`\tSends my command list as a DM.\n•`!bb-help-here`\tThat's this command! I send my command list to the channel\n•`!areyoutherebb`\tI'll respond with 'Yes' (if I'm online)\n•`!brickcount`\tCounts the number of bricks located since the last count (sorta)\n•`!brickbot`\tApproximate explanation of who I am\n•`!brickrepo`\tI'll link my GitHub repository!")
+        await message.channel.send("Current brickbot commands are:\n•`!bb-help`\tSends my command list as a DM.\n•`!bb-help-here`\tThat's this command! I send my command list to the channel\n•`!areyoutherebb`\tI'll respond with 'Yes' (if I'm online)\n•`!brickbot`\tApproximate explanation of who I am\n•`!brickrepo`\tI'll link my GitHub repository!")
         print("!bb-help-here command in channel " + str(message.channel))
     
     #Is brickbot online command
     elif message.content.lower() == "!areyoutherebb":
         await message.channel.send("Yes! " + client.brick)
         
-    #Brickcount command
-    elif message.content.lower() == "!brickcount":
-        if client.brickcount == 0:
-            await message.channel.send("There have been no bricks since the last count! " + client.brick)
-        elif client.brickcount == 1:
-            await message.channel.send("There has been 1 brick since the last count! " + client.brick)
-        else:
-            await message.channel.send("There have been " + str(client.brickcount) + " bricks since the last count! " + client.brick)
-        print("Brickcount for " + str(client.brickcount) + " bricks in channel " + str(message.channel))
-        client.brickcount = 0
+    # #Brickcount command
+    # elif message.content.lower() == "!brickcount":
+        # if client.brickcount == 0:
+            # await message.channel.send("There have been no bricks since the last count! " + client.brick)
+        # elif client.brickcount == 1:
+            # await message.channel.send("There has been 1 brick since the last count! " + client.brick)
+        # else:
+            # await message.channel.send("There have been " + str(client.brickcount) + " bricks since the last count! " + client.brick)
+        # print("Brickcount for " + str(client.brickcount) + " bricks in channel " + str(message.channel))
+        # client.brickcount = 0
         
     #Who is brickbot command
     elif message.content.lower() == "!brickbot":
@@ -152,13 +162,29 @@ async def on_message(message):
         await message.channel.send("You can find the repository of my code at https://github.com/calliope1/brickbot")
         print("Brickrepo command activated in channel " + str(message.channel))
     
-    #Lesbian reaction
+    #Flag reactions
+    
+    elif "asexual" in message.content.lower():
+        await message.add_reaction(client.brick_ace)
+        print("Asexual reacted in " + str(message.channel))
+    elif "bisexual" in message.content.lower():
+        await message.add_reaction(client.brick_bi)
+        print("Bisexual reacted in " + str(message.channel))
     elif "lesbian" in message.content.lower():
         await message.add_reaction(client.brick_lesbian)
         print("Lesbian reacted in " + str(message.channel))
+    elif "gay" in message.content.lower() or "lgbt" in message.content.lower():
+        await message.add_reaction(client.brick_lgbt)
+        print("LGBT reacted in " + str(message.channel))
+    elif "non-binary" in message.content.lower() or "nonbinary" in message.content.lower() or "non binary" in message.content.lower():
+        await message.add_reaction(client.brick_nb)
+        print("Nonbinary reacted in " + str(message.channel))
+    elif "trans" in message.content.lower():
+        await message.add_reaction(client.brick_trans)
+        print("Trans reacted in " + str(message.channel))
     
-    #Secret pickle brick command
-    elif message.content.lower() == "pickle brick":
+    #Pickle brick
+    elif "pickle brick" in message.content.lower():
         await message.add_reaction(client.picklebrick)
         await message.channel.send("I'm Pickle Brick!! " + client.picklebrick)
         print("Pickle brick in channel " + str(message.channel))
@@ -176,23 +202,20 @@ async def on_message(message):
         print("Brickbot no in channel " + str(message.channel))
     
     #No fun command
-    elif "no fun" in message.content.lower():
+    elif "no fun" in message.content.lower() or "nofun" in message.content.lower():
         await message.add_reaction(client.brick_sign)
         print("No fun reacted in channel " + str(message.channel))
     
-    #Regex syntax matching
-    elif bool(client.regex.search("".join(filter(isregular,message.content.lower())))) or bool(client.regex.search("".join(filter(isregular,message.content.lower()[::-1])))):
-        await message.channel.send(client.brick)
-        await message.add_reaction(client.brick)
-        client.brickcount += 1
-        print("Brick located in channel " + str(message.channel))
-    
-    #Did someone say brick??
-    elif "brick" in "".join(filter(str.isalpha,message.content.lower())) or "🧱" in message.content.lower() or client.brick in message.content.lower():
-        await message.channel.send(client.brick)
-        await message.add_reaction(client.brick)
-        client.brickcount += 1
-        print("Brick located in channel " + str(message.channel))
+    #Regex syntax matching and brick finding
+    elif bool(client.regex.search("".join(filter(isregular,message.content.lower())))) or bool(client.regex.search("".join(filter(isregular,message.content.lower()[::-1])))) or "🧱" in message.content.lower():
+        if not random.randint(0,99):
+            emoji = client.all_flags[random.randint(0,len(client.all_flags))]
+            await message.channel.send(emoji)
+            await message.add_reaction(emoji)
+        else:
+            await message.channel.send(client.brick)
+            await message.add_reaction(client.brick)
+        print("Brick found in channel " + str(message.channel))
         
     #React to pub messages from promoted channels with :brick_beer:
     elif message.channel.id == promoted_channel:
@@ -206,7 +229,11 @@ async def on_message(message):
     
     #React to every hundredth (randomly) message with :brick:
     elif not random.randint(0,99):
-        await message.add_reaction(client.brick)
+        if not random.randint(0,99):
+            emoji = client.all_flags[random.randint(0,len(client.all_flags))]
+            await message.add_reaction(emoji)
+        else:
+            await message.add_reaction(client.brick)
         print("Brick reacted in channel " + str(message.channel))
 
 #Logs in to the bot
