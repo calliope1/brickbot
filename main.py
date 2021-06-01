@@ -148,28 +148,9 @@ async def on_message(message):
     # if "aro" in message.content.lower():
         # await message.add_reaction(client.brick_aro)
         # print("Aro reacted in " + str(message.channel))
-
-    #React to pub messages from promoted channels with :brick_beer:
-    if message.channel.id == promoted_channel:
-        if "pub" in message.content.lower():
-            await message.channel.send(client.brick_beer)
-            await message.add_reaction(client.brick_beer)
-            print("Pub reacted to an announcement")
-        elif bool(client.regex.search("".join(filter(isregular,message.content.lower())))) or bool(client.regex.search("".join(filter(isregular,message.content.lower()[::-1])))) or "🧱" in message.content.lower():
-            if not random.randint(0,99):
-                emoji = client.all_flags[random.randint(0,len(client.all_flags))]
-                await message.channel.send(emoji)
-                await message.add_reaction(emoji)
-            else:
-                await message.channel.send(client.brick)
-                await message.add_reaction(client.brick)
-            print("Brick found in channel " + str(message.channel))
-        elif not random.randint(0,19):
-            await message.add_reaction(client.brick)
-            print("Brick reacted to an announcement")
     
-        #!bb-help command
-    elif message.content.lower() == "!bb-help":
+    #!bb-help command
+    if message.content.lower() == "!bb-help":
         await message.author.send("Current brickbot commands are:\n•`!bb-help`\tThat's this command! The command list is sent as a DM.\n•`!bb-help-here`\tI'll send this list to the channel, rather than as a DM\n•`!areyoutherebb`\tI'll respond with 'Yes' (if I'm online)\n•`!brickbot`\tApproximate explanation of who I am\n•`!brickrepo`\tI'll link my GitHub repository!")
         await message.channel.send("Command list sent as a direct message!")
         print("!bb-help command in channel " + str(message.channel))
@@ -226,6 +207,25 @@ async def on_message(message):
     elif "no fun" in message.content.lower() or "nofun" in message.content.lower():
         await message.add_reaction(client.brick_sign)
         print("No fun reacted in channel " + str(message.channel))
+    
+        #React to pub messages from promoted channels with :brick_beer:
+    elif message.channel.id == promoted_channel:
+        if "pub" in message.content.lower():
+            await message.channel.send(client.brick_beer)
+            await message.add_reaction(client.brick_beer)
+            print("Pub reacted to an announcement")
+        elif bool(client.regex.search("".join(filter(isregular,message.content.lower())))) or bool(client.regex.search("".join(filter(isregular,message.content.lower()[::-1])))) or "🧱" in message.content.lower():
+            if not random.randint(0,99):
+                emoji = client.all_flags[random.randint(0,len(client.all_flags))]
+                await message.channel.send(emoji)
+                await message.add_reaction(emoji)
+            else:
+                await message.channel.send(client.brick)
+                await message.add_reaction(client.brick)
+            print("Brick found in channel " + str(message.channel))
+        elif not random.randint(0,19):
+            await message.add_reaction(client.brick)
+            print("Brick reacted to an announcement")
 
     #Regex syntax matching and brick finding
     elif bool(client.regex.search("".join(filter(isregular,message.content.lower())))) or bool(client.regex.search("".join(filter(isregular,message.content.lower()[::-1])))) or "🧱" in message.content.lower():
