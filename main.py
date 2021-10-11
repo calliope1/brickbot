@@ -67,6 +67,11 @@ async def on_message(message):
     if message.author == client.user:
         return
     
+    #In fact, don't react to any bots' messages
+    if message.author.bot:
+        print("good")
+        return
+    
     #Don't interact with excluded channels
     if message.channel.id in excluded_channels:
         return
