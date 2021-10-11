@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 # dotenv variable grabbing
 load_dotenv()
 token = os.getenv("discord_token")
-excluded_channel = int(os.getenv("excluded_channel"))
+excluded_channels = [int(os.getenv("excluded_channel_1")),int(os.getenv("excluded_channel_2"))]
 commands_channel = int(os.getenv("commands_channel"))
 promoted_channel = int(os.getenv("promoted_channel"))
 
@@ -29,6 +29,7 @@ client.brick = str(os.getenv("brick"))
 client.pickle_brick = str(os.getenv("pickle_brick"))
 client.brick_beer = str(os.getenv("brick_beer"))
 client.brick_sign = str(os.getenv("brick_sign"))
+client.party_brick = str(os.getenv("party_brick"))
 #Flags
 client.brick_lesbian = str(os.getenv("brick_lesbian"))
 client.brick_ace = str(os.getenv("brick_ace"))
@@ -67,7 +68,7 @@ async def on_message(message):
         return
     
     #Don't interact with excluded channels
-    if message.channel.id == excluded_channel:
+    if message.channel.id in excluded_channels:
         return
     
     #The commands channel in brickbot's server
@@ -125,9 +126,11 @@ async def on_message(message):
         #No known command
         else:
             await message.channel.send("Command failed")
+        
+        return
     
     #Flag reactions
-    if "asexual" in message.content.lower() or "ace" in message.content.lower():
+    if "asexual" in message.content.lower() or " ace " in message.content.lower():
         await message.add_reaction(client.brick_ace)
         print("Asexual reacted in " + str(message.channel))
     if "bisexual" in message.content.lower():
@@ -148,6 +151,8 @@ async def on_message(message):
     # if "aro" in message.content.lower():
         # await message.add_reaction(client.brick_aro)
         # print("Aro reacted in " + str(message.channel))
+    #if "pan"
+    #if "queer"
     
     #!bb-help command
     if message.content.lower() == "!bb-help":
@@ -240,7 +245,9 @@ async def on_message(message):
     
     #React to every hundredth (randomly) message with :brick:
     elif not random.randint(0,99):
-        if not random.randint(0,99):
+        if not random.randint(0,49):
+            await message.add_reaction(party_brick)
+        elif not random.randint(0,99):
             emoji = client.all_flags[random.randint(0,len(client.all_flags))]
             await message.add_reaction(emoji)
         else:
