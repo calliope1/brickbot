@@ -2,7 +2,8 @@ import discord
 import os
 import random
 import re
-import brickbot_arg
+import commands.cli as cli
+from commands.exceptions import *
 
 from dotenv import load_dotenv
 
@@ -15,7 +16,6 @@ token = os.getenv("discord_token")
 excluded_channels = [int(os.getenv("excluded_channel_1")),int(os.getenv("excluded_channel_2"))]
 commands_channel = int(os.getenv("commands_channel"))
 promoted_channel = int(os.getenv("promoted_channel"))
-
 
 #Discord client connection
 client = discord.Client(activity=discord.Game(name="Brick"))
@@ -49,12 +49,7 @@ client.regex = re.compile('[b8]+r+[i1!]*c+[ck]')
 
 #Custom character strip for regex testing
 def isregular(character):
-    if character.isalpha():
-        return True
-    elif character in ['8','1','!']:
-        return True
-    else:
-        return False
+    return character.isaplha() or character in {'8', '1', '!'}
 
 @client.event
 async def on_ready():
@@ -65,114 +60,221 @@ async def on_message(message):
 
     #Don't react to your own messages
     if message.author == client.user:
-        return
+        return 0
     
     #In fact, don't react to any bots' messages
     if message.author.bot:
-        print("good")
-        return
+        return 0
     
     #Don't interact with excluded channels
     if message.channel.id in excluded_channels:
-        return
+        return 0
     
     #The commands channel in brickbot's server
     if message.channel.id == commands_channel:
     
         #Return list of channels that brickbot is in
         if message.content.lower() == "!channels":
-            for guild in client.guilds:
-                responsetext = "Guild -- **" + str(guild) + "**: " + str(guild.id) + "\n"
-                for channel in guild.text_channels:
-                    responsetext += "\n**" + str(channel) + "**: " + str(channel.id)
-                await message.channel.send(responsetext)
+            await message.channel.send(cli.list_channels(client))
+            return 0
                 
         #Returns the name and guild of a particular channel id
         elif message.content.lower()[0:12] == "!channelname":
-            channel = client.get_channel(int(message.content[13:31]))
-            await message.channel.send("Channel is `" + str(channel) + "`, id=`" + str(channel.id) + "` in guild `" + str(channel.guild) + "`.")
+            try:
+                channel_id, extra = cli.extract_id(message, "!channelname")
+            except NonIntIdException as niie:
+                await message.channel.send(f"Error: {niie.message}")
+                return NonIntIdException.value
+            except TooShortMessageException as tsme:
+                await message.channel.send(f"Error: {tsme.message}")
+                return TooShortMessageException.value
+            if extra:
+                await message.channel.send(f"Warning: Channel id exceeded 18 characters. Cutting down to {channel_id}")
+            try:
+                await message.channel.send(cli.channel_info(client, channel_id))
+                return 0
+            except NoChannelException as nce:
+                await message.channel.send(nce.message)
+                return NoChannelException.value
+            return UnexpectedLogicPath.value
             
         #Sends a message to the channel id (syntax: !sendmessage CHANNELID message)
         elif message.content.lower()[0:12] == "!sendmessage":
-            channel = client.get_channel(int(message.content[13:31]))
-            await channel.send(message.content[32:len(message.content)])
-            await message.channel.send("Sent message '" + message.content[32:len(message.content)] + "' to channel '" + str(channel) + "'")
+            try:
+                channel_id, extra = cli.extract_id(message, "!sendmessage")
+            except NonIntIdException as niie:
+                await message.channel.send(f"Error: {niie.message}")
+                return NonIntIdException.value
+            except TooShortMessageException as tsme:
+                await message.channel.send(f"Error: {tsme.message}")
+                return TooShortMessageException.value
+            try:
+                channel = client.get_channel(channel_id)
+            except:
+                exception = NoChannelException(channel_id)
+                message.channel.send(f"Error: {exception.message}")
+                return NoChannelException.value
+            if not extra:
+                await message.channel.send("No message to send.")
+                return 0
+            await channel.send(extra)
+            return 0
         
         #Deletes a message based on its id (syntax: !deletemessage MESSAGEID CHANNELID)
         elif message.content.lower()[0:14] == "!deletemessage":
-            channel = client.get_channel(int(message.content[34:52]))
-            msg = await channel.fetch_message(int(message.content[15:33]))
-            await msg.delete()
-            await message.channel.send("Deleted message '" + msg.content + "' from channel '" + str(channel) + "'")
-        
+            message_id, raw_channel_id = cli.extract_id(message, "!deletemessage")
+            if not message_id:
+                await message.channel.send(f"Error: Malformed message id. Either the id is too short or it is not an int.")
+                return
+            channel_id, extra = cli.extract_id(raw_channel_id, "")
+            if not channel_id:
+                await message.channel.send(f"Error: Malformed channel id. Either the id is too short or it is not an int.")
+                return
+            if extra:
+                await message.channel.send(f"Warning: Additional message content `{extra}` will be discarded.")
+            try:
+                target_channel, target_message = cli.delete_message(client, channel_id, message_id)
+                await message.target_channel.send(f"Deleted message '{target_message.content}' from channel '{target_channel}'")
+            except NoChannelException as nce:
+                await message.channel.send(f"Error: {nce.message}")
+            except NoMessageException as nme:
+                await message.channel.send(f"Error: {nme.message}")
+            finally:
+                return
+
         #Echoes a message in print
         elif message.content.lower()[0:5] == "!echo":
+            if len(message.content) < 6:
+                await message.channel.send("No message to echo.")
+                return 0
             await message.channel.send("Echoing message!")
             print(message.content[6:len(message.content)])
+            return 0
         
         #Brick reacts a maessage (syntax: !brickreact MESSAGEID CHANNELID)
         elif message.content.lower()[0:11] == "!brickreact":
-            channel = client.get_channel(int(message.content[31:49]))
-            msg = await channel.fetch_message(int(message.content[12:30]))
-            await msg.add_reaction(client.brick)
-            await message.channel.send("Reacted to message '" + msg.content + "' with " + client.brick)
+            try:
+                message_id, raw_channel_id = cli.extract_id(message, "!brickreact")
+            except NonIntIdException as niie:
+                await message.channel.send(f"Error: {niie.message}")
+                return NonIntIdException.value
+            except TooShortMessageException as tsme:
+                await message.channel.send(f"Error: {tsme.message}")
+                return TooShortMessageException.value
+            try:
+                channel_id, extra = cli.extract_id(raw_channel_id, "")
+            except NonIntIdException as niie:
+                await message.channel.send(f"Error: {niie.message}")
+                return NonIntIdException.value
+            except TooShortMessageException as tsme:
+                await message.channel.send(f"Error: {tsme.message}")
+                return TooShortMessageException.value
+            try:
+                channel = client.get_channel(channel_id)
+            except:
+                exception = NoChannelException(channel_id)
+                await message.channel.send(f"Error: {exception.message}")
+                return NoChannelException.value
+            try:
+                target_message = await channel.fetch_message(message_id)
+            except:
+                exception = NoMessageException(message_id, channel_id)
+                await message.channel.send(f"Error: {exception.message}")
+                return NoMessageException.value
+            await target_message.add_reaction(client.brick)
+            await message.channel.send(f"Reacted to message '{target_message.content}' with {client.brick}.")
+            return 0
         
         #Brick_beer reacts a maessage (syntax: !brickbeerreact MESSAGEID CHANNELID)
         elif message.content.lower()[0:15] == "!brickbeerreact":
-            channel = client.get_channel(int(message.content[35:54]))
-            msg = await channel.fetch_message(int(message.content[16:34]))
-            await msg.add_reaction(client.brick_beer)
-            await message.channel.send("Reacted to message '" + msg.content + "' with " + client.brick_beer)
+            try:
+                message_id, raw_channel_id = cli.extract_id(message, "!brickbeerreact")
+            except NonIntIdException as niie:
+                await message.channel.send(f"Error: {niie.message}")
+                return NonIntIdException.value
+            except TooShortMessageException as tsme:
+                await message.channel.send(f"Error: {tsme.message}")
+                return TooShortMessageException.value
+            try:
+                channel_id, extra = cli.extract_id(raw_channel_id, "")
+            except NonIntIdException as niie:
+                await message.channel.send(f"Error: {niie.message}")
+                return NonIntIdException.value
+            except TooShortMessageException as tsme:
+                await message.channel.send(f"Error: {tsme.message}")
+                return TooShortMessageException.value
+            try:
+                channel = client.get_channel(channel_id)
+            except:
+                exception = NoChannelException(channel_id)
+                await message.channel.send(f"Error: {exception.message}")
+                return NoChannelException.value
+            try:
+                target_message = client.get_message(message_id)
+            except:
+                exception = NoMessageException(message_id, channel_id)
+                await message.channel.send(f"Error: {exception.message}")
+                return NoMessageException.value
+            await target_message.add_reaction(client.brick_beer)
+            await message.channel.send(f"Reacted to message '{target_message.content}' with {client.brick_beer}")
+            return 0
         
         #Experimental DM feature
         elif message.content.lower() == "!dmme":
             await message.author.send("Hi!")
-        
+            return 0
+
         #No known command
-        else:
-            await message.channel.send("Command failed")
-        
-        return
+        await message.channel.send("Not a known command.")
+        return 0
     
+    # If bigotry is being mentioned, we don't want BrickBot barging in
+    if "phobia" in message.content.lower():
+        return 0
+
     #Flag reactions
     if "asexual" in message.content.lower() or " ace " in message.content.lower():
         await message.add_reaction(client.brick_ace)
-        print("Asexual reacted in " + str(message.channel))
+        print(f"Asexual reacted in {message.channel}")
+        return 0
     if "bisexual" in message.content.lower():
         await message.add_reaction(client.brick_bi)
-        print("Bisexual reacted in " + str(message.channel))
+        print(f"Bisexual reacted in {message.channel}")
+        return 0
     if "lesbian" in message.content.lower():
         await message.add_reaction(client.brick_lesbian)
-        print("Lesbian reacted in " + str(message.channel))
+        print(f"Lesbian reacted in {message.channel}")
+        return 0
     if "gay" in message.content.lower() or "lgbt" in message.content.lower() or "queer" in message.content.lower():
         await message.add_reaction(client.brick_lgbt)
-        print("LGBT reacted in " + str(message.channel))
+        print(f"LGBT reacted in {message.channel}")
+        return 0
     if "non-binary" in message.content.lower() or "nonbinary" in message.content.lower() or "non binary" in message.content.lower():
         await message.add_reaction(client.brick_nb)
-        print("Nonbinary reacted in " + str(message.channel))
+        print(f"Non-binary reacted in {message.channel}")
+        return 0
     if "trans" in message.content.lower():
         await message.add_reaction(client.brick_trans)
         print("Trans reacted in " + str(message.channel))
-    # if "aro" in message.content.lower():
-        # await message.add_reaction(client.brick_aro)
-        # print("Aro reacted in " + str(message.channel))
-    #if "pan"
-    #if "queer"
-    
+        return 0
+
     #!bb-help command
     if message.content.lower() == "!bb-help":
         await message.author.send("Current brickbot commands are:\n•`!bb-help`\tThat's this command! The command list is sent as a DM.\n•`!bb-help-here`\tI'll send this list to the channel, rather than as a DM\n•`!areyoutherebb`\tI'll respond with 'Yes' (if I'm online)\n•`!brickbot`\tApproximate explanation of who I am\n•`!brickrepo`\tI'll link my GitHub repository!")
         await message.channel.send("Command list sent as a direct message!")
-        print("!bb-help command in channel " + str(message.channel))
+        print(f"!bb-help command in channel {message.channel}")
+        return 0
     
     #!bb-help-here command
     elif message.content.lower() == "!bb-help-here":
         await message.channel.send("Current brickbot commands are:\n•`!bb-help`\tSends my command list as a DM.\n•`!bb-help-here`\tThat's this command! I send my command list to the channel\n•`!areyoutherebb`\tI'll respond with 'Yes' (if I'm online)\n•`!brickbot`\tApproximate explanation of who I am\n•`!brickrepo`\tI'll link my GitHub repository!")
-        print("!bb-help-here command in channel " + str(message.channel))
+        print("!bb-help-here command in channel {message.channel}")
+        return 0
     
     #Is brickbot online command
     elif message.content.lower() == "!areyoutherebb":
-        await message.channel.send("Yes! " + client.brick)
+        await message.channel.send(f"Yes! {client.brick}")
+        return 0
         
     # #Brickcount command
     # elif message.content.lower() == "!brickcount":
@@ -187,36 +289,42 @@ async def on_message(message):
         
     #Who is brickbot command
     elif message.content.lower() == "!brickbot":
-        await message.channel.send("Brickbot is a bot that reacts to any messages containing the word brick with a " + client.brick + "! For a full list of commands, type '!bb-help'.")
-        print("!brickbot in channel " + str(message.channel))
+        await message.channel.send(f"Brickbot is a bot that reacts to any messages containing the word brick with a {client.brick}! For a full list of commands, type '!bb-help'.")
+        print(f"!brickbot in channel {message.channel}")
+        return 0
     
     #Brickbot repository command
     elif message.content.lower() == "!brickrepo":
         await message.channel.send("You can find the repository of my code at https://github.com/calliope1/brickbot")
-        print("Brickrepo command activated in channel " + str(message.channel))
+        print(f"Brickrepo command activated in channel {message.channel}")
+        return 0
     
     #Pickle brick
     elif "pickle brick" in message.content.lower():
         await message.add_reaction(client.pickle_brick)
-        await message.channel.send("I'm Pickle Brick!! " + client.pickle_brick)
-        print("Pickle brick in channel " + str(message.channel))
+        await message.channel.send(f"I'm Pickle Brick!! {client.pickle_brick}")
+        print("Pickle brick in channel {message.channel}")
+        return 0
         
     #Brickbot yes command
     elif "brickbot yes" in message.content.lower():
         await message.add_reaction(client.thank_you)
         await message.channel.send(client.thank_you)
-        print("Brickbot yes in channel " + str(message.channel))
+        print(f"Brickbot yes in channel {message.channel}")
+        return 0
     
     #Brickbot no command
     elif "brickbot no" in message.content.lower():
         await message.add_reaction(client.extreme_sadness)
         await message.channel.send(client.extreme_sadness)
-        print("Brickbot no in channel " + str(message.channel))
+        print(f"Brickbot no in channel {message.channel}")
+        return 0
     
     #No fun command
     elif "no fun" in message.content.lower() or "nofun" in message.content.lower():
         await message.add_reaction(client.brick_sign)
-        print("No fun reacted in channel " + str(message.channel))
+        print(f"No fun reacted in channel {message.channel}")
+        return 0
     
         #React to pub messages from promoted channels with :brick_beer:
     elif message.channel.id == promoted_channel:
@@ -224,6 +332,7 @@ async def on_message(message):
             await message.channel.send(client.brick_beer)
             await message.add_reaction(client.brick_beer)
             print("Pub reacted to an announcement")
+            return 0
         elif bool(client.regex.search("".join(filter(isregular,message.content.lower())))) or bool(client.regex.search("".join(filter(isregular,message.content.lower()[::-1])))) or "🧱" in message.content.lower():
             if not random.randint(0,99):
                 emoji = client.all_flags[random.randint(0,len(client.all_flags))]
@@ -232,10 +341,12 @@ async def on_message(message):
             else:
                 await message.channel.send(client.brick)
                 await message.add_reaction(client.brick)
-            print("Brick found in channel " + str(message.channel))
+            print(f"Brick found in channel {message.channel}")
+            return 0
         elif not random.randint(0,19):
             await message.add_reaction(client.brick)
             print("Brick reacted to an announcement")
+            return 0
 
     #Regex syntax matching and brick finding
     elif bool(client.regex.search("".join(filter(isregular,message.content.lower())))) or bool(client.regex.search("".join(filter(isregular,message.content.lower()[::-1])))) or "🧱" in message.content.lower():
@@ -246,18 +357,20 @@ async def on_message(message):
         else:
             await message.channel.send(client.brick)
             await message.add_reaction(client.brick)
-        print("Brick found in channel " + str(message.channel))
+        print(f"Brick found in channel {message.channel}")
+        return 0
     
     #React to every hundredth (randomly) message with :brick:
     elif not random.randint(0,99):
         if not random.randint(0,49):
-            await message.add_reaction(party_brick)
+            await message.add_reaction(client.party_brick)
         elif not random.randint(0,99):
             emoji = client.all_flags[random.randint(0,len(client.all_flags))]
             await message.add_reaction(emoji)
         else:
             await message.add_reaction(client.brick)
-        print("Brick reacted in channel " + str(message.channel))
+        print("Brick reacted in channel {message.channel}")
+        return 0
 
 #Logs in to the bot
 client.run(token)
